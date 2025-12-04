@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Test Site Banner -->
+    <div class="test-site-banner">
+        <span class="banner-icon">⚠️</span>
+        TEST SITE - This is a development/demo site. Nothing here is legitimate or production-ready!
+        <span class="banner-icon">⚠️</span>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <a href="index.html" class="logo">agame.works</a>
@@ -35,6 +42,7 @@
                 <button data-section="users">Users</button>
                 <button data-section="messages">Messages</button>
                 <button data-section="settings">Settings</button>
+                <button data-section="devtools">🛠️ Dev Tools</button>
             </div>
 
             <!-- Admin Panel Content -->
@@ -109,6 +117,80 @@
                             <input type="text" id="adminUsername" readonly>
                         </div>
                         <button class="submit-btn" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+
+                <!-- Dev Tools Section -->
+                <div id="devtools" class="admin-section">
+                    <h3>🛠️ Developer Tools</h3>
+                    <p style="margin-bottom: 1.5rem; opacity: 0.8;">Random development utilities for testing and debugging. Remember: This is a test site!</p>
+                    
+                    <div class="dev-tools-grid">
+                        <!-- UUID Generator -->
+                        <div class="dev-tool-card">
+                            <h4>🔑 UUID Generator</h4>
+                            <p>Generate random UUIDs for testing purposes.</p>
+                            <button class="dev-tool-btn" id="generateUuidBtn">Generate UUID</button>
+                            <div class="dev-output" id="uuidOutput">Click button to generate...</div>
+                        </div>
+
+                        <!-- Lorem Ipsum Generator -->
+                        <div class="dev-tool-card">
+                            <h4>📝 Lorem Ipsum</h4>
+                            <p>Generate placeholder text for layouts.</p>
+                            <button class="dev-tool-btn" id="generateLoremBtn">Generate Text</button>
+                            <div class="dev-output" id="loremOutput">Click button to generate...</div>
+                        </div>
+
+                        <!-- Random Color Generator -->
+                        <div class="dev-tool-card">
+                            <h4>🎨 Color Generator</h4>
+                            <p>Generate random hex colors for design.</p>
+                            <button class="dev-tool-btn" id="generateColorBtn">Generate Color</button>
+                            <div class="dev-output" id="colorOutput">Click button to generate...</div>
+                        </div>
+
+                        <!-- Timestamp Converter -->
+                        <div class="dev-tool-card">
+                            <h4>⏰ Timestamp Info</h4>
+                            <p>Get current timestamp in various formats.</p>
+                            <button class="dev-tool-btn" id="getTimestampBtn">Get Timestamp</button>
+                            <div class="dev-output" id="timestampOutput">Click button to get timestamp...</div>
+                        </div>
+
+                        <!-- Base64 Encoder -->
+                        <div class="dev-tool-card">
+                            <h4>🔐 Base64 Encoder</h4>
+                            <p>Encode text to Base64 format.</p>
+                            <input type="text" id="base64Input" placeholder="Enter text..." style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 5px; border: none;">
+                            <button class="dev-tool-btn" id="encodeBase64Btn">Encode</button>
+                            <div class="dev-output" id="base64Output">Enter text and click encode...</div>
+                        </div>
+
+                        <!-- Random Password Generator -->
+                        <div class="dev-tool-card">
+                            <h4>🔒 Password Generator</h4>
+                            <p>Generate random secure passwords.</p>
+                            <button class="dev-tool-btn" id="generatePasswordBtn">Generate Password</button>
+                            <div class="dev-output" id="passwordOutput">Click button to generate...</div>
+                        </div>
+
+                        <!-- JSON Formatter -->
+                        <div class="dev-tool-card">
+                            <h4>📋 JSON Formatter</h4>
+                            <p>Format and beautify JSON data.</p>
+                            <textarea id="jsonInput" placeholder='{"key": "value"}' style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem; border-radius: 5px; border: none; min-height: 60px;"></textarea>
+                            <button class="dev-tool-btn" id="formatJsonBtn">Format JSON</button>
+                            <div class="dev-output" id="jsonOutput">Enter JSON and click format...</div>
+                        </div>
+
+                        <!-- Browser Info -->
+                        <div class="dev-tool-card">
+                            <h4>🌐 Browser Info</h4>
+                            <p>Get current browser and system information.</p>
+                            <button class="dev-tool-btn" id="getBrowserInfoBtn">Get Info</button>
+                            <div class="dev-output" id="browserInfoOutput">Click button to get info...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -286,6 +368,109 @@
         function saveSettings() {
             alert('Settings saved successfully!');
         }
+
+        // Dev Tools Functionality
+        // UUID Generator
+        document.getElementById('generateUuidBtn').addEventListener('click', function() {
+            const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            document.getElementById('uuidOutput').textContent = uuid;
+        });
+
+        // Lorem Ipsum Generator
+        document.getElementById('generateLoremBtn').addEventListener('click', function() {
+            const lorem = [
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+                "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+                "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.",
+                "Excepteur sint occaecat cupidatat non proident, sunt in culpa."
+            ];
+            const count = Math.floor(Math.random() * 3) + 2;
+            const selectedSentences = lorem.sort(() => Math.random() - 0.5).slice(0, count);
+            document.getElementById('loremOutput').textContent = selectedSentences.join(' ');
+        });
+
+        // Random Color Generator
+        document.getElementById('generateColorBtn').addEventListener('click', function() {
+            const hex = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            const output = document.getElementById('colorOutput');
+            output.textContent = hex + '\nRGB: ' + parseInt(hex.slice(1,3), 16) + ', ' + parseInt(hex.slice(3,5), 16) + ', ' + parseInt(hex.slice(5,7), 16);
+            output.style.borderLeft = '4px solid ' + hex;
+        });
+
+        // Timestamp Info
+        document.getElementById('getTimestampBtn').addEventListener('click', function() {
+            const now = new Date();
+            const info = [
+                'Unix: ' + Math.floor(now.getTime() / 1000),
+                'ISO: ' + now.toISOString(),
+                'Local: ' + now.toLocaleString(),
+                'UTC: ' + now.toUTCString()
+            ];
+            document.getElementById('timestampOutput').textContent = info.join('\n');
+        });
+
+        // Base64 Encoder
+        document.getElementById('encodeBase64Btn').addEventListener('click', function() {
+            const input = document.getElementById('base64Input').value;
+            if (!input) {
+                document.getElementById('base64Output').textContent = 'Please enter some text first!';
+                return;
+            }
+            try {
+                const encoded = btoa(input);
+                document.getElementById('base64Output').textContent = 'Encoded: ' + encoded + '\nDecoded: ' + atob(encoded);
+            } catch (e) {
+                document.getElementById('base64Output').textContent = 'Error: Could not encode (non-ASCII characters?)';
+            }
+        });
+
+        // Random Password Generator
+        document.getElementById('generatePasswordBtn').addEventListener('click', function() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            let passwords = [];
+            for (let p = 0; p < 3; p++) {
+                let password = '';
+                for (let i = 0; i < 16; i++) {
+                    password += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                passwords.push(password);
+            }
+            document.getElementById('passwordOutput').textContent = passwords.join('\n');
+        });
+
+        // JSON Formatter
+        document.getElementById('formatJsonBtn').addEventListener('click', function() {
+            const input = document.getElementById('jsonInput').value;
+            if (!input) {
+                document.getElementById('jsonOutput').textContent = 'Please enter JSON first!';
+                return;
+            }
+            try {
+                const parsed = JSON.parse(input);
+                document.getElementById('jsonOutput').textContent = JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                document.getElementById('jsonOutput').textContent = 'Error: Invalid JSON\n' + e.message;
+            }
+        });
+
+        // Browser Info
+        document.getElementById('getBrowserInfoBtn').addEventListener('click', function() {
+            const info = [
+                'User Agent: ' + navigator.userAgent,
+                'Platform: ' + navigator.platform,
+                'Language: ' + navigator.language,
+                'Cookies: ' + (navigator.cookieEnabled ? 'Enabled' : 'Disabled'),
+                'Screen: ' + screen.width + 'x' + screen.height,
+                'Window: ' + window.innerWidth + 'x' + window.innerHeight,
+                'Color Depth: ' + screen.colorDepth + '-bit'
+            ];
+            document.getElementById('browserInfoOutput').textContent = info.join('\n');
+        });
     </script>
 </body>
 </html>
