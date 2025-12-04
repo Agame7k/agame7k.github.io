@@ -53,7 +53,8 @@ jobs:
       - name: Create dev banner CSS
         run: |
           mkdir -p main/dev/css
-          cat > main/dev/css/dev-banner.css << 'DEVBANNERCSS'
+          # Using a unique filename (.dev-banner-auto.css) to avoid overwriting user files
+          cat > main/dev/css/.dev-banner-auto.css << 'DEVBANNERCSS'
           /* Dev Banner Styles - Auto-generated */
           .dev-banner {
               position: fixed;
@@ -87,8 +88,8 @@ jobs:
           html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
-              # Add dev-banner.css link before </head>
-              sed -i 's/<\/head>/    <link rel="stylesheet" href="css\/dev-banner.css">\n<\/head>/' "$file" || true
+              # Add .dev-banner-auto.css link before </head> (uses hidden filename to avoid overwrites)
+              sed -i 's/<\/head>/    <link rel="stylesheet" href="css\/.dev-banner-auto.css">\n<\/head>/' "$file" || true
             done
           fi
       
