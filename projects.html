@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - agame.works</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">agame.works</a>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="projects.html">Projects</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+        <div class="auth-buttons">
+            <a href="login.html" class="login-btn">Login</a>
+            <a href="signup.html" class="signup-btn">Sign Up</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>My Projects</h1>
+            <p>Check out my GitHub repositories and projects</p>
+        </div>
+
+        <div id="projects-container" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading projects...</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 agame.works. All rights reserved.</p>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        const GITHUB_USERNAME = 'Agame7k';
+        
+        // Language colors for GitHub
+        const languageColors = {
+            'JavaScript': '#f1e05a',
+            'TypeScript': '#3178c6',
+            'Python': '#3572A5',
+            'Java': '#b07219',
+            'HTML': '#e34c26',
+            'CSS': '#563d7c',
+            'C++': '#f34b7d',
+            'C': '#555555',
+            'C#': '#178600',
+            'Go': '#00ADD8',
+            'Rust': '#dea584',
+            'Ruby': '#701516',
+            'PHP': '#4F5D95',
+            'Shell': '#89e051',
+            'Vue': '#41b883',
+            'React': '#61dafb',
+            'Swift': '#ffac45',
+            'Kotlin': '#A97BFF'
+        };
+
+        function getLanguageColor(language) {
+            return languageColors[language] || '#8b949e';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function loadProjects() {
+            const container = document.getElementById('projects-container');
+            
+            try {
+                const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=30`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch repositories');
+                }
+                
+                const repos = await response.json();
+                
+                if (repos.length === 0) {
+                    container.innerHTML = '<div class="error-message"><p>No public repositories found.</p></div>';
+                    return;
+                }
+                
+                // Filter out forks (optional) and sort by stars
+                const filteredRepos = repos.filter(repo => !repo.fork);
+                
+                let html = '<div class="projects-grid">';
+                
+                filteredRepos.forEach(repo => {
+                    const langColor = getLanguageColor(repo.language);
+                    const description = repo.description || 'No description available';
+                    
+                    html += `
+                        <div class="project-card">
+                            <h3><a href="${escapeHtml(repo.html_url)}" target="_blank">${escapeHtml(repo.name)}</a></h3>
+                            <p>${escapeHtml(description)}</p>
+                            <div class="project-meta">
+                                ${repo.language ? `
+                                    <span>
+                                        <span class="language-dot" style="background-color: ${langColor}"></span>
+                                        ${escapeHtml(repo.language)}
+                                    </span>
+                                ` : ''}
+                                <span>⭐ ${repo.stargazers_count}</span>
+                                <span>🍴 ${repo.forks_count}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                container.classList.remove('loading');
+                
+            } catch (error) {
+                console.error('Error loading projects:', error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load projects. Please try again later.</p>
+                        <p><a href="https://github.com/${GITHUB_USERNAME}" target="_blank" style="color: #58a6ff;">View on GitHub</a></p>
+                    </div>
+                `;
+                container.classList.remove('loading');
+            }
+        }
+
+        // Load projects when the page loads
+        document.addEventListener('DOMContentLoaded', loadProjects);
+    </script>
+</body>
+</html>
