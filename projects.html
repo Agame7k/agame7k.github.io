@@ -13,6 +13,7 @@
         <ul class="nav-links">
             <li><a href="index.html">Home</a></li>
             <li><a href="projects.html">Projects</a></li>
+            <li><a href="blog.html">Blog</a></li>
             <li><a href="about.html">About</a></li>
             <li><a href="contact.html">Contact</a></li>
         </ul>
@@ -148,7 +149,7 @@
                 container.innerHTML = `
                     <div class="error-message">
                         <p>Failed to load projects. Please try again later.</p>
-                        <p><a href="https://github.com/${GITHUB_USERNAME}" target="_blank" style="color: #58a6ff;">View on GitHub</a></p>
+                        <p><a href="https://github.com/${GITHUB_USERNAME}" target="_blank">View on GitHub</a></p>
                     </div>
                 `;
                 container.classList.remove('loading');
