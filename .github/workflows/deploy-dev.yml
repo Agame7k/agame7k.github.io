@@ -42,8 +42,8 @@ jobs:
           html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
-              # Add [DEV] prefix to title (handles single-line titles)
-              sed -i 's/<title>\([^<]*\)<\/title>/<title>[DEV] \1<\/title>/' "$file" || true
+              # Add [DEV] prefix to title (handles multi-line and complex titles)
+              perl -0777 -i -pe 's{(<title[^>]*>)(.*?)(</title>)}{ $2 =~ /^\[DEV\]/ ? "$1$2$3" : "$1[DEV] $2$3" }egs' "$file" || true
               
               # Add dev banner after <body> tag (handles body tag with or without attributes)
               sed -i 's/<body\([^>]*\)>/<body\1>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
