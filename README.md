@@ -1,39 +1,56 @@
 # agame7k.github.io
 my website for agame.works
 
-## Development Testing
+## Development Environment
 
-This repository has a dev testing setup that allows you to preview changes before pushing to production.
+### Branch Structure
+- **main**: Production branch - deployed to https://agame.works
+- **dev**: Development branch - deployed to https://agame.works/dev
 
-### How it works:
+### How the Dev Environment Works
 
-1. **Production site**: `https://agame.works` - served from the `main` branch
-2. **Dev site**: `https://agame.works/dev` - automatically deployed from the `dev` branch
+1. **Automatic Deployment**: When you push to the `dev` branch, a GitHub Actions workflow automatically:
+   - Copies files from the `dev` branch to a `/dev` folder on the main branch
+   - Adds a dev banner to all HTML pages to clearly indicate you're viewing the development version
+   - Adds `[DEV]` prefix to page titles
 
-### Workflow:
+2. **Accessing the Dev Site**: 
+   - Production: https://agame.works
+   - Development: https://agame.works/dev
 
-1. Create a `dev` branch if it doesn't exist:
+3. **Manual Trigger**: You can also manually run the deploy workflow from the GitHub Actions tab
+
+### Setting Up Local Development
+
+1. Clone the repository:
    ```bash
-   git checkout -b dev
+   git clone https://github.com/Agame7k/agame7k.github.io.git
+   cd agame7k.github.io
    ```
 
-2. Make your changes on the `dev` branch and push:
+2. Switch to the dev branch:
+   ```bash
+   git checkout dev
+   ```
+
+3. Make your changes and test locally (you can use a simple HTTP server):
+   ```bash
+   # Python 3
+   python -m http.server 8000
+   
+   # Or using Node.js
+   npx serve
+   ```
+
+4. Push to the dev branch to trigger deployment:
    ```bash
    git add .
    git commit -m "Your changes"
    git push origin dev
    ```
 
-3. The GitHub Action will automatically copy the dev branch files to `/dev` on main
+5. View your changes at https://agame.works/dev
 
-4. Visit `https://agame.works/dev` to preview your changes (look for the orange DEV MODE banner)
+### Dev Banner
 
-5. When you're happy with the changes, merge `dev` into `main`:
-   ```bash
-   git checkout main
-   git merge dev
-   git push origin main
-   ```
-
-### Note:
-The dev site will show an orange "DEV MODE" banner at the top to clearly distinguish it from production.
+The development site automatically includes an orange banner at the top indicating "DEV MODE" with a link back to the production site.

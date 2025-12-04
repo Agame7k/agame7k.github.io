@@ -34,53 +34,57 @@ jobs:
           mkdir -p main/dev
           
           # Copy all files from dev branch to main/dev
-          # Exclude .git directory
-          rsync -av --exclude='.git' --exclude='.github' dev-branch/ main/dev/
+          # Exclude .git directory and common development artifacts
+          rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.DS_Store' --exclude='*.log' dev-branch/ main/dev/
           
           # Add dev banner to all HTML files if any exist
           shopt -s nullglob
           html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
-              # Add [DEV] prefix to title (handles single-line titles)
-              sed -i 's/<title>\([^<]*\)<\/title>/<title>[DEV] \1<\/title>/' "$file" || true
+              # Add [DEV] prefix to title (handles multi-line and complex titles)
+              perl -0777 -i -pe 's{(<title[^>]*>)(.*?)(</title>)}{ $2 =~ /^\[DEV\]/ ? "$1$2$3" : "$1[DEV] $2$3" }egs' "$file" || true
               
-              # Add dev banner after <body> tag
-              sed -i 's/<body>/<body>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
+              # Add dev banner after <body> tag (handles body tag with or without attributes)
+              sed -i 's/<body\([^>]*\)>/<body\1>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
             done
           fi
-          
-          # Add dev banner styles - create CSS file if needed
+      
+      - name: Create dev banner CSS
+        run: |
           mkdir -p main/dev/css
-          cat >> main/dev/css/dev-banner.css << 'EOF'
-/* Dev Banner Styles - Auto-generated */
-.dev-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(90deg, #ff6b6b, #ffa500);
-    color: white;
-    text-align: center;
-    padding: 8px;
-    font-weight: bold;
-    z-index: 9999;
-    font-size: 14px;
-}
+          cat > main/dev/css/dev-banner.css << 'DEVBANNERCSS'
+          /* Dev Banner Styles - Auto-generated */
+          .dev-banner {
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              background: linear-gradient(90deg, #ff6b6b, #ffa500);
+              color: white;
+              text-align: center;
+              padding: 8px;
+              font-weight: bold;
+              z-index: 9999;
+              font-size: 14px;
+          }
 
-.dev-banner a {
-    color: white;
-    text-decoration: underline;
-    margin-left: 10px;
-}
+          .dev-banner a {
+              color: white;
+              text-decoration: underline;
+              margin-left: 10px;
+          }
 
-/* Offset body content for fixed banner */
-body {
-    margin-top: 36px;
-}
-EOF
-          
-          # Add link to dev-banner.css in all HTML files
+          /* Offset body content for fixed banner */
+          body {
+              margin-top: 36px;
+          }
+          DEVBANNERCSS
+      
+      - name: Add CSS link to HTML files
+        run: |
+          shopt -s nullglob
+          html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
               # Add dev-banner.css link before </head>
