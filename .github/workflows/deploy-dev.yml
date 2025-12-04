@@ -36,22 +36,23 @@ jobs:
           # Exclude .git directory
           rsync -av --exclude='.git' --exclude='.github' dev-branch/ main/dev/
           
-          # Add dev banner to all HTML files
-          for file in main/dev/*.html; do
-            if [ -f "$file" ]; then
-              # Add [DEV] prefix to title
-              sed -i 's/<title>\(.*\)<\/title>/<title>[DEV] \1<\/title>/' "$file"
+          # Add dev banner to all HTML files if any exist
+          shopt -s nullglob
+          html_files=(main/dev/*.html)
+          if [ ${#html_files[@]} -gt 0 ]; then
+            for file in "${html_files[@]}"; do
+              # Add [DEV] prefix to title (handles single-line titles)
+              sed -i 's/<title>\([^<]*\)<\/title>/<title>[DEV] \1<\/title>/' "$file" || true
               
               # Add dev banner after <body> tag
-              sed -i 's/<body>/<body>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="..\/index.html">Go to Production<\/a>\n    <\/div>/' "$file"
-            fi
-          done
+              sed -i 's/<body>/<body>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
+            done
+          fi
           
-          # Add dev banner styles to CSS file if it exists
-          if [ -f "main/dev/css/styles.css" ]; then
-            cat >> main/dev/css/styles.css << 'EOF'
-
-/* Dev Banner Styles */
+          # Add dev banner styles - create CSS file if needed
+          mkdir -p main/dev/css
+          cat >> main/dev/css/dev-banner.css << 'EOF'
+/* Dev Banner Styles - Auto-generated */
 .dev-banner {
     position: fixed;
     top: 0;
@@ -72,14 +73,18 @@ jobs:
     margin-left: 10px;
 }
 
+/* Offset body content for fixed banner */
 body {
-    padding-top: 40px !important;
-}
-
-.navbar {
-    top: 40px !important;
+    margin-top: 36px;
 }
 EOF
+          
+          # Add link to dev-banner.css in all HTML files
+          if [ ${#html_files[@]} -gt 0 ]; then
+            for file in "${html_files[@]}"; do
+              # Add dev-banner.css link before </head>
+              sed -i 's/<\/head>/    <link rel="stylesheet" href="css\/dev-banner.css">\n<\/head>/' "$file" || true
+            done
           fi
       
       - name: Commit and push changes
