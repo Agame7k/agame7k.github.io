@@ -1,0 +1,25 @@
+/* Dev Banner Styles - Auto-generated */
+.dev-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #ff6b6b, #ffa500);
+    color: white;
+    text-align: center;
+    padding: 8px;
+    font-weight: bold;
+    z-index: 9999;
+    font-size: 14px;
+}
+
+.dev-banner a {
+    color: white;
+    text-decoration: underline;
+    margin-left: 10px;
+}
+
+/* Offset body content for fixed banner */
+body {
+    margin-top: 36px;
+}
