@@ -34,19 +34,25 @@ jobs:
           mkdir -p main/dev
           
           # Copy all files from dev branch to main/dev
-          # Exclude .git directory and common development artifacts
-          rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.DS_Store' --exclude='*.log' dev-branch/ main/dev/
+          # Exclude .git directory, .github, node_modules, dev folder (to prevent nesting), and common artifacts
+          rsync -av --exclude='.git' --exclude='.github' --exclude='node_modules' --exclude='.DS_Store' --exclude='*.log' --exclude='dev/' dev-branch/ main/dev/
           
           # Add dev banner to all HTML files if any exist
           shopt -s nullglob
           html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
-              # Add [DEV] prefix to title (handles multi-line and complex titles)
-              perl -0777 -i -pe 's{(<title[^>]*>)(.*?)(</title>)}{ $2 =~ /^\[DEV\]/ ? "$1$2$3" : "$1[DEV] $2$3" }egs' "$file" || true
+              # Add [DEV] prefix to title - simpler sed approach that preserves the title tag
+              # Only add [DEV] if not already present
+              if ! grep -q '\[DEV\]' "$file"; then
+                sed -i 's/<title>\([^<]*\)<\/title>/<title>[DEV] \1<\/title>/g' "$file" || true
+              fi
               
               # Add dev banner after <body> tag (handles body tag with or without attributes)
-              sed -i 's/<body\([^>]*\)>/<body\1>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
+              # Only add if banner not already present
+              if ! grep -q 'dev-banner' "$file"; then
+                sed -i 's/<body\([^>]*\)>/<body\1>\n    <!-- DEV MODE BANNER -->\n    <div class="dev-banner">\n        🚧 DEV MODE - <a href="\/">Go to Production<\/a>\n    <\/div>/' "$file" || true
+              fi
             done
           fi
       
@@ -88,8 +94,10 @@ jobs:
           html_files=(main/dev/*.html)
           if [ ${#html_files[@]} -gt 0 ]; then
             for file in "${html_files[@]}"; do
-              # Add .dev-banner-auto.css link before </head> (uses hidden filename to avoid overwrites)
-              sed -i 's/<\/head>/    <link rel="stylesheet" href="css\/.dev-banner-auto.css">\n<\/head>/' "$file" || true
+              # Add .dev-banner-auto.css link before </head> only if not already present
+              if ! grep -q '.dev-banner-auto.css' "$file"; then
+                sed -i 's/<\/head>/    <link rel="stylesheet" href="css\/.dev-banner-auto.css">\n<\/head>/' "$file" || true
+              fi
             done
           fi
       

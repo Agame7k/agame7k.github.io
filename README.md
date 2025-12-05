@@ -67,7 +67,7 @@ The development site automatically includes an orange banner at the top indicati
 
 ## Blog System & TrueNAS Sync
 
-The blog system is designed to sync posts from your TrueNAS server. Here's how to set it up:
+The blog system is designed to sync posts from your TrueNAS server. There are multiple approaches depending on whether you're using TrueNAS SCALE (Linux-based) or TrueNAS CORE (FreeBSD-based).
 
 ### Blog Post Format
 
@@ -86,18 +86,96 @@ Blog posts are stored in `data/blog-posts.json`. Each post should have this stru
 }
 ```
 
-### Setting Up TrueNAS Sync
+---
 
-To automatically sync blog posts from your TrueNAS server to this GitHub Pages site:
+### Option 1: TrueNAS SCALE Apps (Recommended)
 
-#### 1. Create a Blog Posts Directory on TrueNAS
+TrueNAS SCALE uses a Kubernetes-based app system. You can use official or community apps for blog syncing.
 
-Create a directory on your TrueNAS server to store blog posts:
+#### Using the Git-Sync App
+
+1. **Install Git-Sync from TrueNAS Apps Catalog**:
+   - Go to **Apps** → **Discover Apps**
+   - Search for "git-sync" or browse the TrueCharts catalog
+   - Click **Install**
+
+2. **Configure the App**:
+   ```yaml
+   # Example configuration
+   Repository: https://github.com/Agame7k/agame7k.github.io.git
+   Branch: main
+   Sync Interval: 3600  # seconds (1 hour)
+   Target Directory: /mnt/pool/blog/repo
+   ```
+
+3. **Set up a Post-Sync Hook** to update blog posts:
+   - Create a script at `/mnt/pool/blog/update-posts.sh`
+   - Configure git-sync to run this script after each sync
+
+#### Using a Custom Docker Container
+
+Deploy a custom container through TrueNAS SCALE's Custom App feature:
+
+1. **Go to Apps** → **Discover Apps** → **Custom App**
+
+2. **Configure the container**:
+   ```yaml
+   Container Image: alpine/git
+   Command: ["/bin/sh", "-c", "while true; do /scripts/sync-blog.sh; sleep 3600; done"]
+   Environment Variables:
+     - GITHUB_TOKEN: (your token - store as secret)
+     - GITHUB_REPO: Agame7k/agame7k.github.io
+   Host Path Volumes:
+     - /mnt/pool/blog:/data
+   ```
+
+3. **Mount your sync script** at `/scripts/sync-blog.sh`
+
+#### Using Nextcloud App for Blog Management
+
+If you prefer a GUI-based approach:
+
+1. **Install Nextcloud** from TrueNAS Apps
+2. **Create a "Blog" folder** in Nextcloud
+3. **Write posts as JSON files** directly in the Nextcloud interface
+4. **Set up External Storage** to sync with GitHub using Nextcloud's external storage app
+5. **Use Nextcloud Flow** to trigger syncs on file changes
+
+---
+
+### Option 2: TrueNAS CORE (FreeBSD Jails/Plugins)
+
+For TrueNAS CORE users using FreeBSD jails:
+
+#### Create a Sync Jail
+
+1. **Create a new jail**:
+   - Go to **Jails** → **Add**
+   - Name: `blog-sync`
+   - Release: Latest FreeBSD
+
+2. **Install required packages** in the jail:
+   ```bash
+   pkg install curl jq git
+   ```
+
+3. **Set up the sync script** (see Manual Script Method below)
+
+4. **Configure cron** in the jail for automatic syncing
+
+---
+
+### Option 3: Manual Script Method
+
+For any TrueNAS version, you can use a manual sync script:
+
+#### 1. Create a Blog Posts Directory
+
 ```bash
 mkdir -p /mnt/pool/blog/posts
 ```
 
-#### 2. Create a Sync Script on TrueNAS
+#### 2. Create the Sync Script
 
 Create a script at `/mnt/pool/blog/sync-blog.sh`:
 
@@ -105,7 +183,6 @@ Create a script at `/mnt/pool/blog/sync-blog.sh`:
 #!/bin/bash
 
 # Configuration - Use environment variables for security
-# Set these in your environment or a secure .env file
 BLOG_DIR="/mnt/pool/blog/posts"
 GITHUB_REPO="${GITHUB_REPO:-Agame7k/agame7k.github.io}"
 GITHUB_TOKEN="${GITHUB_TOKEN}"  # Set via environment variable
@@ -171,30 +248,36 @@ export GITHUB_TOKEN="your_github_personal_access_token_here"
 export GITHUB_REPO="Agame7k/agame7k.github.io"
 ```
 
-**Important**: Set restrictive permissions on the env file:
+**Important**: Set restrictive permissions:
 ```bash
 chmod 600 /mnt/pool/blog/.env
+chmod 700 /mnt/pool/blog/sync-blog.sh
 ```
 
-#### 4. Set Up a Cron Job
+#### 4. Set Up Automated Syncing
 
-Add a cron job on TrueNAS to run the sync script periodically:
+**TrueNAS SCALE** - Use System Settings → Advanced → Cron Jobs:
+- Command: `. /mnt/pool/blog/.env && /mnt/pool/blog/sync-blog.sh`
+- Schedule: Every hour (or as desired)
+- User: root (or dedicated user with access)
 
+**TrueNAS CORE** - Use Tasks → Cron Jobs in the web UI or:
 ```bash
-# Edit crontab
 crontab -e
-
-# Add this line to sync every hour (loads env vars before running)
-0 * * * * . /mnt/pool/blog/.env && /mnt/pool/blog/sync-blog.sh >> /var/log/blog-sync.log 2>&1
+# Add: 0 * * * * . /mnt/pool/blog/.env && /mnt/pool/blog/sync-blog.sh >> /var/log/blog-sync.log 2>&1
 ```
 
 #### 5. Create a GitHub Personal Access Token
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens
-2. Generate a new token with `repo` permissions
-3. Copy the token and add it to your `/mnt/pool/blog/.env` file
+1. Go to GitHub **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens**
+2. Create a new token with:
+   - Repository access: Select `Agame7k/agame7k.github.io`
+   - Permissions: Contents (Read and write)
+3. Copy the token and add it to your `.env` file
 
-#### 6. Writing Blog Posts
+---
+
+### Writing Blog Posts
 
 Create individual JSON files in your TrueNAS blog directory:
 
@@ -206,20 +289,32 @@ Create individual JSON files in your TrueNAS blog directory:
     "date": "2024-02-01",
     "author": "Agame7k",
     "excerpt": "This is my latest post about...",
-    "content": "Full content of the post goes here...",
+    "content": "Full content of the post goes here. Use \\n for line breaks.",
     "tags": ["tech", "homelab"],
     "image": null
 }
 ```
 
-### User Data Sync (Future)
+---
 
-For syncing user data, you could set up a similar process, but this would require:
-- A backend API running on TrueNAS
-- Secure authentication between the website and TrueNAS
-- Database storage on TrueNAS for user accounts
+### Security Considerations
 
-**Note**: The current authentication system uses localStorage for demo purposes. For production use with TrueNAS sync, you would need to implement a proper backend API.
+1. **Never commit tokens**: Keep GitHub tokens in environment files with restricted permissions
+2. **Use fine-grained tokens**: Only grant minimum required permissions
+3. **Rotate tokens regularly**: Update tokens periodically for security
+4. **Monitor sync logs**: Check logs for unauthorized access attempts
+
+---
+
+### Future Enhancements
+
+For a more robust setup, consider:
+- **Backend API on TrueNAS**: Run a Node.js or Python API for real-time sync
+- **Database integration**: Store blog posts in a database (PostgreSQL, MariaDB)
+- **Webhook triggers**: Use GitHub webhooks for bidirectional sync
+- **CMS integration**: Deploy a headless CMS like Strapi or Ghost on TrueNAS
+
+**Note**: The current authentication system uses localStorage for demo purposes. For production use with TrueNAS sync, implement a proper backend API.
 
 ---
 
